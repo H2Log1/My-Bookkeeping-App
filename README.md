@@ -18,6 +18,6 @@
 ### 2. 安装依赖
 克隆仓库到本地并安装必要的 GUI 库：
 ```bash
-git clone [https://github.com/你的用户名/仓库名.git](https://github.com/你的用户名/仓库名.git)
+git clone [https://github.com/H2Log1/My-Bookkeeping-App.git](https://github.com/H2Log1/My-Bookkeeping-App.git)
 cd 仓库名
 pip install -r requirements.txt

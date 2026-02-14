@@ -20,5 +20,6 @@
 克隆仓库到本地并安装必要的 GUI 库：
 ```bash
 git clone [https://github.com/H2Log1/My-Bookkeeping-App.git](https://github.com/H2Log1/My-Bookkeeping-App.git)
-pip install FreeSimpleGUI
+cd My-Bookkeeping-App
+pip install -r requirements.txt
 ```

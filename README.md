@@ -20,4 +20,5 @@
 ```bash
 git clone [https://github.com/H2Log1/My-Bookkeeping-App.git](https://github.com/H2Log1/My-Bookkeeping-App.git)
 cd 仓库名
-pip install -r requirements.txt
+pip install FreeSimpleGUI
+```

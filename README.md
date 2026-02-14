@@ -1,6 +1,7 @@
 # 💰 My-Bookkeeping-App
 
-一个基于 Python 和 FreeSimpleGUI 开发的轻量化桌面记账工具，支持数据本地持久化存储功能。
+一个基于 Python 和 FreeSimpleGUI 开发的轻量化桌面记账工具，支持数据本地持久化存储功能。  
+本项目参考[python桌面应用开发实战项目：记帐本](https://space.bilibili.com/1194194498/lists/397109?type=season)中的视频教程进行开发。
 
 ---
 

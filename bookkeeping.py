@@ -5,7 +5,7 @@ import FreeSimpleGUI as sg
 sg.theme("LightBlue2")
 sg.set_options(font=("微软雅黑", 11))
 
-def readData():
+def readData() -> list:
     try:
         with open(r"data.txt", "r", encoding = "utf-8") as f:
             jsonData = f.read()
@@ -16,13 +16,13 @@ def readData():
         dataList = []
     return dataList
 
-def writeData(dataList):
+def writeData(dataList: list) -> None:
     jsonData = json.dumps(dataList, ensure_ascii = False)
     with open(r"data.txt","w", encoding = "utf-8") as f:
         jsonData = f.write(jsonData)
         sg.popup("账单项目已保存！")
 
-def showData(dataList):
+def showData(dataList: list) -> list:
     data = readData()
     dataList = []
     for d in data:
@@ -32,7 +32,7 @@ def showData(dataList):
             dataList.append([d["时间"], d["项目"], -d["金额"], d["分类"]])
     return dataList
 
-def sum():
+def sum() -> tuple:
     sumin = 0
     sumout = 0
     data = readData()
@@ -43,13 +43,13 @@ def sum():
             sumout += d["金额"]
     return sumin, sumout, sumin - sumout
 
-def addData(content, amount, cla):
+def addData(content: str, amount: float, cla: str) -> None:
     data = readData()
     t = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
     data.append({"时间": t, "项目": content, "金额": amount, "分类": cla})
     writeData(data)
 
-def deleteData(index):
+def deleteData(index: int) -> bool:
     data = readData()
     if 0 <= index < len(data):
         deleted_item = data.pop(index)

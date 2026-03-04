@@ -208,7 +208,7 @@ def main():
             content = values["-content-"]
             amount = float(values["-amount-"])
             for k, v in values.items():
-                if v:
+                if v is True and k not in ["-content-", "-amount-", "-show-"]:
                     cla = k
                     addData(content, amount, cla)
                     currentList = showData(readData())
@@ -220,6 +220,7 @@ def main():
                     windows["-content-"].update("")
                     windows["-amount-"].update("")
                     windows["-content-"].set_focus()
+                    break
 
         if event == "删除":
             selected = values["-show-"]

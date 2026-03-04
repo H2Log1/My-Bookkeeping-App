@@ -287,7 +287,7 @@ def handleExport(windows, values) -> None:
         else:
             _exportTXT(filepath, data)
         sg.popup(f"已导出到: {filepath}")
-    except Exception as e:
+    except (OSError, IOError) as e:
         sg.popup_error(f"导出失败：{e}")
 
 

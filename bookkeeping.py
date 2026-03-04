@@ -226,9 +226,9 @@ def main():
             if selected:
                 index = selected[0]
                 if deleteData(index):
-                    list = showData(readData())
+                    currentList = showData(readData())
                     sum_in, sum_out, sum_all = sumAmounts()
-                    windows["-show-"].update(list)
+                    windows["-show-"].update(currentList)
                     windows["-in-"].update(f"￥{sum_in}")
                     windows["-out-"].update(f"￥{sum_out}")
                     windows["-balance-"].update(f"￥{sum_all}")

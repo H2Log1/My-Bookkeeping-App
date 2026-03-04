@@ -6,14 +6,21 @@ Date: 2026-02-14
 Description: 个人记账本
 """
 
+import csv
 import datetime
 import json
-import shutil
+import os
 
 import FreeSimpleGUI as sg
 
 sg.theme("LightBlue2")
 sg.set_options(font=("微软雅黑", 11))
+
+
+def formatAmount(value) -> str:
+    if value > 1e15 or value < -1e15:
+        return f"{value:.2e}"
+    return f"{value:,.2f}"
 
 
 def readData() -> list:
@@ -39,9 +46,9 @@ def showData() -> list:
     dataList = []
     for d in data:
         if d["分类"] == "收入":
-            dataList.append([d["时间"], d["项目"], d["金额"], d["分类"]])
+            dataList.append([d["时间"], d["项目"], formatAmount(d["金额"]), d["分类"]])
         else:
-            dataList.append([d["时间"], d["项目"], -d["金额"], d["分类"]])
+            dataList.append([d["时间"], d["项目"], formatAmount(-d["金额"]), d["分类"]])
     return dataList
 
 
@@ -82,7 +89,7 @@ def mainLayout() -> list:
             [
                 [
                     sg.Text(
-                        f"￥{sumin}",
+                        f"￥{formatAmount(sumin)}",
                         key="-in-",
                         text_color="green",
                         font=("微软雅黑", 16, "bold"),
@@ -97,7 +104,7 @@ def mainLayout() -> list:
             [
                 [
                     sg.Text(
-                        f"￥{sumout}",
+                        f"￥{formatAmount(sumout)}",
                         key="-out-",
                         text_color="red",
                         font=("微软雅黑", 16, "bold"),
@@ -112,7 +119,7 @@ def mainLayout() -> list:
             [
                 [
                     sg.Text(
-                        f"￥{sumall}",
+                        f"￥{formatAmount(sumall)}",
                         key="-balance-",
                         text_color="blue",
                         font=("微软雅黑", 16, "bold"),
@@ -134,7 +141,7 @@ def mainLayout() -> list:
                     key="-show-",
                     justification="center",
                     auto_size_columns=False,
-                    col_widths=[18, 12, 12, 12],
+                    col_widths=[18, 12, 16, 8],
                     num_rows=10,
                     enable_events=True,
                     right_click_menu=["&右键", ["删除"]],
@@ -190,9 +197,9 @@ def refreshUI(windows) -> None:
     currentList = showData()
     sum_in, sum_out, sum_all = sumAmounts()
     windows["-show-"].update(currentList)
-    windows["-in-"].update(f"￥{sum_in}")
-    windows["-out-"].update(f"￥{sum_out}")
-    windows["-balance-"].update(f"￥{sum_all}")
+    windows["-in-"].update(f"￥{formatAmount(sum_in)}")
+    windows["-out-"].update(f"￥{formatAmount(sum_out)}")
+    windows["-balance-"].update(f"￥{formatAmount(sum_all)}")
 
 
 def handleSubmit(windows, values) -> None:
@@ -255,12 +262,62 @@ def handleExport(windows, values) -> None:
     filepath = sg.popup_get_file(
         "保存到",
         save_as=True,
-        default_extension=".txt",
-        file_types=(("Text Files", "*.txt"), ("All Files", "*.*")),
+        default_extension=".csv",
+        file_types=(
+            ("CSV 文件", "*.csv"),
+            ("JSON 文件", "*.json"),
+            ("文本文件", "*.txt"),
+            ("All Files", "*.*"),
+        ),
     )
-    if filepath:
-        shutil.copy("data.txt", filepath)
+    if not filepath:
+        return
+
+    data = readData()
+    if not data:
+        sg.popup("没有数据可导出！")
+        return
+
+    ext = os.path.splitext(filepath)[1].lower()
+    try:
+        if ext == ".csv":
+            _exportCSV(filepath, data)
+        elif ext == ".json":
+            _exportJSON(filepath, data)
+        else:
+            _exportTXT(filepath, data)
         sg.popup(f"已导出到: {filepath}")
+    except Exception as e:
+        sg.popup_error(f"导出失败：{e}")
+
+
+def _exportCSV(filepath: str, data: list) -> None:
+    with open(filepath, "w", encoding="utf-8-sig", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["时间", "项目", "金额", "分类"])
+        for d in data:
+            amount = d["金额"] if d["分类"] == "收入" else -d["金额"]
+            writer.writerow([d["时间"], d["项目"], amount, d["分类"]])
+
+
+def _exportJSON(filepath: str, data: list) -> None:
+    with open(filepath, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def _exportTXT(filepath: str, data: list) -> None:
+    sumin, sumout, sumall = sumAmounts()
+    with open(filepath, "w", encoding="utf-8") as f:
+        f.write(f"{'个人记账本':=^40}\n\n")
+        f.write(f"{'时间':<22}{'项目':<12}{'金额':>10}  {'分类'}\n")
+        f.write("-" * 56 + "\n")
+        for d in data:
+            amount = d["金额"] if d["分类"] == "收入" else -d["金额"]
+            f.write(f"{d['时间']:<22}{d['项目']:<12}{amount:>10.2f}  {d['分类']}\n")
+        f.write("-" * 56 + "\n")
+        f.write(
+            f"收入合计: ￥{sumin:.2f}  支出合计: ￥{sumout:.2f}  结余: ￥{sumall:.2f}\n"
+        )
 
 
 def main():

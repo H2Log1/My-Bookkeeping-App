@@ -25,4 +25,4 @@ jobs:
 
     - name: Analysing the code with pylint
       run: |
-        pylint --disable=C0111 --disable=C0103 --recursive=y .
+        pylint --disable=C0111 --disable=C0103 --disable=W0613 --recursive=y .

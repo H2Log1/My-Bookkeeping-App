@@ -237,7 +237,7 @@ def main():
                 sg.popup("请先选中要删除的账单项目！")
 
         if event == "清空账单":
-            if sg.popup_yes_no("确定要清空所有账单吗？", title="确认") == "Yes":
+            if sg.popup_yes_no("确定要清空所有账单吗？", title="清空") == "Yes":
                 with open(r"data.txt", "w", encoding="utf-8") as f:
                     f.write("[]")
                 windows["-show-"].update([])

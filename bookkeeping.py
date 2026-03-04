@@ -211,9 +211,9 @@ def main():
                 if v:
                     cla = k
                     addData(content, amount, cla)
-                    list = showData(readData())
+                    currentList = showData(readData())
                     sum_in, sum_out, sum_all = sumAmounts()
-                    windows["-show-"].update(list)
+                    windows["-show-"].update(currentList)
                     windows["-in-"].update(f"￥{sum_in}")
                     windows["-out-"].update(f"￥{sum_out}")
                     windows["-balance-"].update(f"￥{sum_all}")

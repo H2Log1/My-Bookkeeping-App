@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Author: H2Log1
+Date: 2026-02-14
+Description: 个人记账本
+"""
+
 import datetime
 import json
 import shutil
@@ -191,6 +199,53 @@ def refreshUI(windows) -> None:
     windows["-balance-"].update(f"￥{sum_all}")
 
 
+def handleSubmit(windows, values) -> None:
+    content = values["-content-"]
+    amount = float(values["-amount-"])
+    for k, v in values.items():
+        if v is True and k not in ["-content-", "-amount-", "-show-"]:
+            cla = k
+            addData(content, amount, cla)
+            refreshUI(windows)
+            windows["-content-"].update("")
+            windows["-amount-"].update("")
+            windows["-content-"].set_focus()
+            break
+
+
+def handleDelete(windows, values) -> None:
+    selected = values["-show-"]
+    if selected:
+        index = selected[0]
+        if deleteData(index):
+            refreshUI(windows)
+    else:
+        sg.popup("请先选中要删除的账单项目！")
+
+
+def handleClear(windows, values) -> None:
+    if sg.popup_yes_no("确定要清空所有账单吗？", title="清空") == "Yes":
+        with open(r"data.txt", "w", encoding="utf-8") as f:
+            f.write("[]")
+        windows["-show-"].update([])
+        windows["-in-"].update("￥0")
+        windows["-out-"].update("￥0")
+        windows["-balance-"].update("￥0")
+        sg.popup("账单已清空！")
+
+
+def handleExport(windows, values) -> None:
+    filepath = sg.popup_get_file(
+        "保存到",
+        save_as=True,
+        default_extension=".txt",
+        file_types=(("Text Files", "*.txt"), ("All Files", "*.*")),
+    )
+    if filepath:
+        shutil.copy("data.txt", filepath)
+        sg.popup(f"已导出到: {filepath}")
+
+
 def main():
     windows = sg.Window(
         "个人记账本",
@@ -199,6 +254,14 @@ def main():
         size=(650, 580),
         element_justification="center",
     )
+
+    eventHandlers = {
+        "确认提交": handleSubmit,
+        "删除": handleDelete,
+        "清空账单": handleClear,
+        "导出数据": handleExport,
+    }
+
     while True:
         event, values = windows.read()
 
@@ -213,48 +276,9 @@ def main():
                 elif focused.Key == "-amount-":
                     windows["-content-"].set_focus()
 
-        if event == "确认提交":
-            content = values["-content-"]
-            amount = float(values["-amount-"])
-            for k, v in values.items():
-                if v is True and k not in ["-content-", "-amount-", "-show-"]:
-                    cla = k
-                    addData(content, amount, cla)
-                    refreshUI(windows)
-                    windows["-content-"].update("")
-                    windows["-amount-"].update("")
-                    windows["-content-"].set_focus()
-                    break
-
-        if event == "删除":
-            selected = values["-show-"]
-            if selected:
-                index = selected[0]
-                if deleteData(index):
-                    refreshUI(windows)
-            else:
-                sg.popup("请先选中要删除的账单项目！")
-
-        if event == "清空账单":
-            if sg.popup_yes_no("确定要清空所有账单吗？", title="清空") == "Yes":
-                with open(r"data.txt", "w", encoding="utf-8") as f:
-                    f.write("[]")
-                windows["-show-"].update([])
-                windows["-in-"].update("￥0")
-                windows["-out-"].update("￥0")
-                windows["-balance-"].update("￥0")
-                sg.popup("账单已清空！")
-
-        if event == "导出数据":
-            filepath = sg.popup_get_file(
-                "保存到",
-                save_as=True,
-                default_extension=".txt",
-                file_types=(("Text Files", "*.txt"), ("All Files", "*.*")),
-            )
-            if filepath:
-                shutil.copy("data.txt", filepath)
-                sg.popup(f"已导出到: {filepath}")
+        handler = eventHandlers.get(event)
+        if handler:
+            handler(windows, values)
 
     windows.close()
 

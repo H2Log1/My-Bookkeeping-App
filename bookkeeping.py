@@ -79,7 +79,7 @@ def main():
                   key="-show-", 
                   justification="center",
                   auto_size_columns=False,
-                  col_widths=[18, 12, 10, 8],
+                  col_widths=[18, 12, 14, 10],
                   num_rows=10,
                   enable_events=True,
                   right_click_menu=["&右键", ["删除"]],

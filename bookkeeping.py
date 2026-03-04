@@ -9,8 +9,8 @@ Description: 个人记账本
 import datetime
 import json
 import shutil
-import FreeSimpleGUI as sg
 
+import FreeSimpleGUI as sg
 
 sg.theme("LightBlue2")
 sg.set_options(font=("微软雅黑", 11))
@@ -31,11 +31,10 @@ def readData() -> list:
 def writeData(dataList: list) -> None:
     jsonData = json.dumps(dataList, ensure_ascii=False)
     with open(r"data.txt", "w", encoding="utf-8") as f:
-        jsonData = f.write(jsonData)
-        sg.popup("账单项目已保存！")
+        f.write(jsonData)
 
 
-def showData(dataList: list) -> list:
+def showData() -> list:
     data = readData()
     dataList = []
     for d in data:
@@ -65,20 +64,17 @@ def addData(content: str, amount: float, cla: str) -> None:
     writeData(data)
 
 
-def deleteData(index: int) -> bool:
+def deleteData(index: int) -> dict | None:
     data = readData()
     if 0 <= index < len(data):
         deletedItem = data.pop(index)
-        jsonData = json.dumps(data, ensure_ascii=False)
-        with open(r"data.txt", "w", encoding="utf-8") as f:
-            f.write(jsonData)
-        sg.popup(f"已删除: {deletedItem['项目']}")
-        return True
-    return False
+        writeData(data)
+        return deletedItem
+    return None
 
 
 def mainLayout() -> list:
-    records = showData(readData())
+    records = showData()
     sumin, sumout, sumall = sumAmounts()
     statsFrame = [
         sg.Frame(
@@ -191,7 +187,7 @@ def mainLayout() -> list:
 
 
 def refreshUI(windows) -> None:
-    currentList = showData(readData())
+    currentList = showData()
     sum_in, sum_out, sum_all = sumAmounts()
     windows["-show-"].update(currentList)
     windows["-in-"].update(f"￥{sum_in}")
@@ -200,24 +196,49 @@ def refreshUI(windows) -> None:
 
 
 def handleSubmit(windows, values) -> None:
-    content = values["-content-"]
-    amount = float(values["-amount-"])
+    content = values["-content-"].strip()
+    if not content:
+        sg.popup("请输入项目名称！")
+        windows["-content-"].set_focus()
+        return
+
+    try:
+        amount = float(values["-amount-"])
+    except ValueError:
+        sg.popup("请输入有效的金额！")
+        windows["-amount-"].set_focus()
+        return
+
+    if amount <= 0:
+        sg.popup("金额必须大于零！")
+        windows["-amount-"].set_focus()
+        return
+
+    cla = None
     for k, v in values.items():
         if v is True and k not in ["-content-", "-amount-", "-show-"]:
             cla = k
-            addData(content, amount, cla)
-            refreshUI(windows)
-            windows["-content-"].update("")
-            windows["-amount-"].update("")
-            windows["-content-"].set_focus()
             break
+
+    if cla is None:
+        sg.popup("请选择分类（收入/支出）！")
+        return
+
+    addData(content, amount, cla)
+    sg.popup("账单项目已保存！")
+    refreshUI(windows)
+    windows["-content-"].update("")
+    windows["-amount-"].update("")
+    windows["-content-"].set_focus()
 
 
 def handleDelete(windows, values) -> None:
     selected = values["-show-"]
     if selected:
         index = selected[0]
-        if deleteData(index):
+        deletedItem = deleteData(index)
+        if deletedItem:
+            sg.popup(f"已删除: {deletedItem['项目']}")
             refreshUI(windows)
     else:
         sg.popup("请先选中要删除的账单项目！")
@@ -225,12 +246,8 @@ def handleDelete(windows, values) -> None:
 
 def handleClear(windows, values) -> None:
     if sg.popup_yes_no("确定要清空所有账单吗？", title="清空") == "Yes":
-        with open(r"data.txt", "w", encoding="utf-8") as f:
-            f.write("[]")
-        windows["-show-"].update([])
-        windows["-in-"].update("￥0")
-        windows["-out-"].update("￥0")
-        windows["-balance-"].update("￥0")
+        writeData([])
+        refreshUI(windows)
         sg.popup("账单已清空！")
 
 

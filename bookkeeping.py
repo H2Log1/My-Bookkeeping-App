@@ -182,6 +182,15 @@ def mainLayout() -> list:
     return Layout
 
 
+def refreshUI(windows) -> None:
+    currentList = showData(readData())
+    sum_in, sum_out, sum_all = sumAmounts()
+    windows["-show-"].update(currentList)
+    windows["-in-"].update(f"￥{sum_in}")
+    windows["-out-"].update(f"￥{sum_out}")
+    windows["-balance-"].update(f"￥{sum_all}")
+
+
 def main():
     windows = sg.Window(
         "个人记账本",
@@ -211,12 +220,7 @@ def main():
                 if v is True and k not in ["-content-", "-amount-", "-show-"]:
                     cla = k
                     addData(content, amount, cla)
-                    currentList = showData(readData())
-                    sum_in, sum_out, sum_all = sumAmounts()
-                    windows["-show-"].update(currentList)
-                    windows["-in-"].update(f"￥{sum_in}")
-                    windows["-out-"].update(f"￥{sum_out}")
-                    windows["-balance-"].update(f"￥{sum_all}")
+                    refreshUI(windows)
                     windows["-content-"].update("")
                     windows["-amount-"].update("")
                     windows["-content-"].set_focus()
@@ -227,12 +231,7 @@ def main():
             if selected:
                 index = selected[0]
                 if deleteData(index):
-                    currentList = showData(readData())
-                    sum_in, sum_out, sum_all = sumAmounts()
-                    windows["-show-"].update(currentList)
-                    windows["-in-"].update(f"￥{sum_in}")
-                    windows["-out-"].update(f"￥{sum_out}")
-                    windows["-balance-"].update(f"￥{sum_all}")
+                    refreshUI(windows)
             else:
                 sg.popup("请先选中要删除的账单项目！")
 

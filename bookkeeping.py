@@ -2,6 +2,7 @@ import datetime
 import json
 
 import FreeSimpleGUI as sg
+import shutil
 
 sg.theme("LightBlue2")
 sg.set_options(font=("微软雅黑", 11))
@@ -59,26 +60,25 @@ def addData(content: str, amount: float, cla: str) -> None:
 def deleteData(index: int) -> bool:
     data = readData()
     if 0 <= index < len(data):
-        deleted_item = data.pop(index)
+        deletedItem = data.pop(index)
         jsonData = json.dumps(data, ensure_ascii=False)
         with open(r"data.txt", "w", encoding="utf-8") as f:
             f.write(jsonData)
-        sg.popup(f"已删除: {deleted_item['项目']}")
+        sg.popup(f"已删除: {deletedItem['项目']}")
         return True
     return False
 
 
-def main():
-    list = showData(readData())
-    sum_in, sum_out, sum_all = sumAmounts()
-
-    stats_frame = [
+def mainLayout() -> list:
+    records = showData(readData())
+    sumin, sumout, sumall = sumAmounts()
+    statsFrame = [
         sg.Frame(
             "收入",
             [
                 [
                     sg.Text(
-                        f"￥{sum_in}",
+                        f"￥{sumin}",
                         key="-in-",
                         text_color="green",
                         font=("微软雅黑", 16, "bold"),
@@ -93,7 +93,7 @@ def main():
             [
                 [
                     sg.Text(
-                        f"￥{sum_out}",
+                        f"￥{sumout}",
                         key="-out-",
                         text_color="red",
                         font=("微软雅黑", 16, "bold"),
@@ -108,7 +108,7 @@ def main():
             [
                 [
                     sg.Text(
-                        f"￥{sum_all}",
+                        f"￥{sumall}",
                         key="-balance-",
                         text_color="blue",
                         font=("微软雅黑", 16, "bold"),
@@ -120,12 +120,12 @@ def main():
         ),
     ]
 
-    table_frame = sg.Frame(
+    tableFrame = sg.Frame(
         "账目明细",
         [
             [
                 sg.Table(
-                    list,
+                    records,
                     headings=["时间", "项目", "金额", "分类"],
                     key="-show-",
                     justification="center",
@@ -144,7 +144,7 @@ def main():
         expand_y=True,
     )
 
-    input_frame = sg.Frame(
+    inputFrame = sg.Frame(
         "添加账单",
         [
             [sg.Text("项目：", size=(6, 1)), sg.Input(key="-content-", size=(25, 1))],
@@ -155,7 +155,7 @@ def main():
         expand_x=True,
     )
 
-    button_frame = [
+    buttonFrame = [
         sg.Button("确认提交", size=(10, 1), button_color=("white", "#4CAF50")),
         sg.Button("清空账单", size=(10, 1), button_color=("white", "#FF9800")),
         sg.Button("导出数据", size=(10, 1), button_color=("white", "#2196F3")),
@@ -172,17 +172,20 @@ def main():
             )
         ],
         [sg.HorizontalSeparator()],
-        stats_frame,
+        statsFrame,
         [sg.VPush()],
-        [table_frame],
+        [tableFrame],
         [sg.VPush()],
-        [input_frame],
-        [sg.Push()] + button_frame + [sg.Push()],
+        [inputFrame],
+        [sg.Push()] + buttonFrame + [sg.Push()],
     ]
+    return Layout
 
+
+def main():
     windows = sg.Window(
         "个人记账本",
-        Layout,
+        mainLayout(),
         return_keyboard_events=True,
         size=(650, 580),
         element_justification="center",
@@ -250,8 +253,6 @@ def main():
                 file_types=(("Text Files", "*.txt"), ("All Files", "*.*")),
             )
             if filepath:
-                import shutil
-
                 shutil.copy("data.txt", filepath)
                 sg.popup(f"已导出到: {filepath}")
 
